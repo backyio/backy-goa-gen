@@ -89,7 +89,6 @@ func GenerateLoggerFile(genpkg string) *codegen.File {
 	sections := []*codegen.SectionTemplate{
 		codegen.Header(title, "log", []*codegen.ImportSpec{
 			{Path: "github.com/sirupsen/logrus"},
-			{Path: "goa.design/goa/v3/http/middleware"},
 		}),
 	}
 
@@ -167,7 +166,7 @@ func New(serviceName string, isDebug bool) *Logger {
 // Log is called by the log middleware to log HTTP requests key values
 func (logger *Logger) Log(keyvals ...interface{}) error {
 	fields := FormatFields(keyvals)
-	logger.WithField(fields).Info("HTTP Request")
+	logger.WithFields(fields).Info("HTTP Request")
 	return nil
 }
 
