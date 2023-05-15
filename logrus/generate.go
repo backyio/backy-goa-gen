@@ -89,6 +89,7 @@ func GenerateLoggerFile(genpkg string) *codegen.File {
 	sections := []*codegen.SectionTemplate{
 		codegen.Header(title, "log", []*codegen.ImportSpec{
 			{Path: "github.com/sirupsen/logrus"},
+			{Path: "fmt"},
 		}),
 	}
 
@@ -117,10 +118,8 @@ func updateExampleFile(genpkg string, root *expr.RootExpr, f *fileToModify) {
 
 	if f.isMain {
 
-		codegen.AddImport(header, &codegen.ImportSpec{Path: "github.com/sirupsen/logrus"})
-
 		for _, s := range f.file.SectionTemplates {
-			s.Source = strings.Replace(s.Source, `logger = log.New(os.Stderr, "[{{ .APIPkg }}] ", log.Ltime)`, `logger = logrus.New()`, 1)
+			s.Source = strings.Replace(s.Source, `logger = log.New(os.Stderr, "[{{ .APIPkg }}] ", log.Ltime)`, `logger = logrus.New("[{{ .APIPkg }}]", true)`, 1)
 			s.Source = strings.Replace(s.Source, "adapter = middleware.NewLogger(logger)", "adapter = logger", 1)
 			s.Source = strings.Replace(s.Source, "handler = middleware.RequestID()(handler)",
 				`handler = middleware.PopulateRequestContext()(handler)
@@ -130,8 +129,6 @@ func updateExampleFile(genpkg string, root *expr.RootExpr, f *fileToModify) {
 			s.Source = strings.Replace(s.Source, "logger.Print(", "logger.Info(", -1)
 			s.Source = strings.Replace(s.Source, "logger.Printf(", "logger.Infof(", -1)
 			s.Source = strings.Replace(s.Source, "logger.Println(", "logger.Info(", -1)
-
-			s.Source = strings.Replace(s.Source, "func errorHandler(logger *log.Logger)", "func errorHandler(logger *logrus.Logger)", -1)
 		}
 	} else {
 		for _, s := range f.file.SectionTemplates {
