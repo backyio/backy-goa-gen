@@ -1,14 +1,16 @@
-package backy_goa_gen
+package muxer
 
+/*
 import (
+	"path"
+	"path/filepath"
+	"strings"
+
 	"goa.design/goa/v3/codegen"
 	"goa.design/goa/v3/codegen/service"
 	"goa.design/goa/v3/eval"
 	"goa.design/goa/v3/expr"
 	httpcode "goa.design/goa/v3/http/codegen"
-	"path"
-	"path/filepath"
-	"strings"
 )
 
 type (
@@ -31,7 +33,7 @@ func init() {
 	codegen.RegisterPluginLast("backy-muxer", "example", nil, Generate)
 }
 
-// Generate produces server code that handle preflight requests and updates
+// Generate produces muxer code that handle preflight requests and updates
 // the HTTP responses with the appropriate CORS headers.
 func Generate(genpkg string, roots []eval.Root, files []*codegen.File) ([]*codegen.File, error) {
 	var data muxData
@@ -67,7 +69,7 @@ func GenMuxer(genpkg string, mux *muxData) {
 	spec = append(spec, codegen.GoaImport("net/http"))
 	spec = append(spec, codegen.GoaImport("net/url"))
 
-	// Iterate through services listed in the server expression.
+	// Iterate through services listed in the muxer expression.
 	scope := codegen.NewNameScope()
 	for _, svc := range mux.Services {
 		sd := httpcode.HTTPServices.Get(svc.Data.Name())
@@ -99,7 +101,7 @@ func GenMuxer(genpkg string, mux *muxData) {
 	path := filepath.Join(codegen.Gendir, "muxer.go")
 
 	sections := []*codegen.SectionTemplate{
-		codegen.Header("Backy.io muxer helper", "server", spec),
+		codegen.Header("Backy.io muxer helper", "muxer", spec),
 	}
 
 	sections = append(sections, &codegen.SectionTemplate{
@@ -156,3 +158,4 @@ const (
 	}
 `
 )
+*/

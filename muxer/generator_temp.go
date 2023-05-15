@@ -1,12 +1,14 @@
-package backy_goa_gen
+package muxer
 
+/*
 import (
+	"testing"
+
 	"goa.design/goa/v3/codegen/generator"
 	"goa.design/goa/v3/eval"
 	"goa.design/goa/v3/expr"
 	"goa.design/goa/v3/http/codegen"
 	"goa.design/goa/v3/http/codegen/testdata"
-	"testing"
 )
 
 func TestGenerate(t *testing.T) {
@@ -53,3 +55,4 @@ func generateExamples(t *testing.T, roots []eval.Root) []*codegen.File {
 	}
 	return files
 }
+*/
