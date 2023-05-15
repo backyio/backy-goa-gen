@@ -172,7 +172,7 @@ func (logger *Logger) Log(keyvals ...interface{}) error {
 
 // formatFields formats input keyvals
 // ref: https://github.com/goadesign/goa/blob/v1/logging/logrus/adapter.go#L64
-func FormatFields(keyvals []interface{}) logrus.Fields{} {
+func FormatFields(keyvals []interface{}) logrus.Fields {
 	n := (len(keyvals) + 1) / 2
 	res := make(logrus.Fields, n)
 	for i := 0; i < len(keyvals); i += 2 {
