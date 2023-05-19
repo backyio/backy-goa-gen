@@ -125,16 +125,16 @@ func updateExampleFile(genpkg string, root *expr.RootExpr, f *fileToModify) {
 				`handler = middleware.PopulateRequestContext()(handler)
 				handler = middleware.RequestID(middleware.UseXRequestIDHeaderOption(true))(handler)`, 1)
 			s.Source = strings.Replace(s.Source, `logger.Printf("[%s] ERROR: %s", id, err.Error())`,
-				`logger.WithField("id",id).Error(err.Error())`, 1)
-			s.Source = strings.Replace(s.Source, "logger.Print(", "logger.Log(logger.InfoLevel,", -1)
-			s.Source = strings.Replace(s.Source, "logger.Printf(", "logger.Log(logger.InfoLevel,", -1)
-			s.Source = strings.Replace(s.Source, "logger.Println(", "logger.Log(logger.InfoLevel,", -1)
+				`logger.Logf( log.ErrorLevel, "[%s] ERROR: %s", id, err.Error())`, 1)
+			s.Source = strings.Replace(s.Source, "logger.Print(", "logger.Log(log.InfoLevel,", -1)
+			s.Source = strings.Replace(s.Source, "logger.Printf(", "logger.Log(log.InfoLevel,", -1)
+			s.Source = strings.Replace(s.Source, "logger.Println(", "logger.Log(log.InfoLevel,", -1)
 		}
 	} else {
 		for _, s := range f.file.SectionTemplates {
-			s.Source = strings.Replace(s.Source, "logger.Print(", "logger.Log(logger.InfoLevel,", -1)
-			s.Source = strings.Replace(s.Source, "logger.Printf(", "logger.Log(logger.InfoLevel", -1)
-			s.Source = strings.Replace(s.Source, "logger.Println(", "logger.Log(logger.InfoLevel,", -1)
+			s.Source = strings.Replace(s.Source, "logger.Print(", "logger.Log(log.InfoLevel,", -1)
+			s.Source = strings.Replace(s.Source, "logger.Printf(", "logger.Log(log.InfoLevel", -1)
+			s.Source = strings.Replace(s.Source, "logger.Println(", "logger.Log(log.InfoLevel,", -1)
 		}
 	}
 }
@@ -142,12 +142,14 @@ func updateExampleFile(genpkg string, root *expr.RootExpr, f *fileToModify) {
 const loggerT = `
 // Logger is an adapted go-micro logger
 type Logger struct {
-	mlog.logger
+	mlog.Logger
 }
 
 // InfoLevel is wrap the go micro logger infolevel
-var InfoLevel = mlog.InfoLevel
-
+var (
+	InfoLevel = mlog.InfoLevel
+	ErrorLevel = mlog.ErrorLevel
+)
 
 // New creates a new logrus logger
 func New(serviceName string) *Logger {
