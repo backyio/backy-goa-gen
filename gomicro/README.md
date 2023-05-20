@@ -1,4 +1,4 @@
-# Logrus Plugin
+# Go-Micro Logger Plugin
 
 The `Micro logger` plugin is a [Goa](https://github.com/goadesign/goa/tree/v3) plugin
 that adapt the logger to use the [gomicro logger](https://go-micro.dev) library.
