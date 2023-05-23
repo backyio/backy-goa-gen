@@ -119,7 +119,7 @@ func updateExampleFile(genpkg string, root *expr.RootExpr, f *fileToModify) {
 	if f.isMain {
 
 		for _, s := range f.file.SectionTemplates {
-			s.Source = strings.Replace(s.Source, `logger = log.New(os.Stderr, "[{{ .APIPkg }}] ", log.Ltime)`, `logger = mlog.NewLogger()`, 1)
+			s.Source = strings.Replace(s.Source, `logger = log.New(os.Stderr, "[{{ .APIPkg }}] ", log.Ltime)`, `logger = log.New("[{{ .APIPkg }}]")`, 1)
 			s.Source = strings.Replace(s.Source, "adapter = middleware.NewLogger(logger)", "adapter = logger", 1)
 			s.Source = strings.Replace(s.Source, "handler = middleware.RequestID()(handler)",
 				`handler = middleware.PopulateRequestContext()(handler)
