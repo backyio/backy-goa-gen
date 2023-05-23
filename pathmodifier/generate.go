@@ -1,6 +1,8 @@
 package pathmodifier
 
 import (
+	"fmt"
+	"path/filepath"
 	"strings"
 
 	"goa.design/goa/v3/codegen"
@@ -13,15 +15,35 @@ func init() {
 	codegen.RegisterPluginLast("pathmod-example", "example", nil, UpdateExample)
 }
 
+func ReplaceGen(s string, imp bool) (res string) {
+	res = strings.Replace(s, "gen/", "", -1)
+	res = strings.Replace(res, "gen\\", "", -1)
+	return
+}
+
 // Generate is rewrite generated files path
 func Generate(genpkg string, roots []eval.Root, files []*codegen.File) ([]*codegen.File, error) {
 	for _, f := range files {
-		f.Path = strings.Replace(f.Path, "/gen/", "/", -1)
+
+		f.Path = ReplaceGen(f.Path, false)
+
+		// rewrite openapi output path
+		if strings.Contains(f.Path, "http\\openapi") || strings.Contains(f.Path, "http/openapi") {
+			fn := filepath.Base(f.Path)
+			f.Path = fmt.Sprintf("../api/openapi/%s", fn)
+		}
+
 		for _, s := range f.SectionTemplates {
-			hd := s.Data.(map[string]interface{})
-			specs := hd["Imports"].([]*codegen.ImportSpec)
+			hd, ok := s.Data.(map[string]interface{})
+			if !ok {
+				continue
+			}
+			specs, ok := hd["Imports"].([]*codegen.ImportSpec)
+			if !ok {
+				continue
+			}
 			for _, is := range specs {
-				is.Path = strings.Replace(is.Path, "/gen/", "/", -1)
+				is.Path = ReplaceGen(is.Path, true)
 			}
 		}
 	}
@@ -31,12 +53,35 @@ func Generate(genpkg string, roots []eval.Root, files []*codegen.File) ([]*codeg
 // UpdateExample is update example files path
 func UpdateExample(genpkg string, roots []eval.Root, files []*codegen.File) ([]*codegen.File, error) {
 	for _, f := range files {
-		f.Path = strings.Replace(f.Path, "/gen/", "/", -1)
+		// rewrite base path
+		f.Path = ReplaceGen(f.Path, false)
+		if strings.Contains(f.Path, "cmd\\") || strings.Contains(f.Path, "cmd/") {
+			f.Path = strings.Replace(f.Path, "cmd\\", "..\\cmd\\goa-", -1)
+			f.Path = strings.Replace(f.Path, "cmd/", "../cmd/goa-", -1)
+		}
+
+		// rewrite implementation path
+		isSvc := false
+		if strings.Contains(f.Path, "\\") == false && strings.Contains(f.Path, "/") == false {
+			fn := filepath.Base(f.Path)
+			f.Path = fmt.Sprintf("../service/%s", fn)
+			isSvc = true
+		}
+
 		for _, s := range f.SectionTemplates {
-			hd := s.Data.(map[string]interface{})
-			specs := hd["Imports"].([]*codegen.ImportSpec)
+			hd, ok := s.Data.(map[string]interface{})
+			if !ok {
+				continue
+			}
+			specs, ok := hd["Imports"].([]*codegen.ImportSpec)
+			if !ok {
+				continue
+			}
 			for _, is := range specs {
-				is.Path = strings.Replace(is.Path, "/gen/", "/", -1)
+				is.Path = ReplaceGen(is.Path, true)
+			}
+			if isSvc {
+				hd["Pkg"] = "service"
 			}
 		}
 	}
