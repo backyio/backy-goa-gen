@@ -24,7 +24,7 @@ type (
 
 // Register the plugin Generator functions.
 func init() {
-	codegen.RegisterPluginFirst("micro-muxer", "gen", nil, Generate)
+	codegen.RegisterPluginFirst("micro-muxer", "example", nil, Generate)
 }
 
 // Generate generates go-muxer specific file.
