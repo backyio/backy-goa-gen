@@ -67,7 +67,7 @@ func UpdateExample(genpkg string, roots []eval.Root, files []*codegen.File) ([]*
 		isSvc := false
 		if strings.Contains(f.Path, "\\") == false && strings.Contains(f.Path, "/") == false {
 			fn := filepath.Base(f.Path)
-			f.Path = fmt.Sprintf("../service/%s", fn)
+			f.Path = fmt.Sprintf("../server/endpoint/%s", fn)
 			isSvc = true
 		}
 
@@ -84,7 +84,7 @@ func UpdateExample(genpkg string, roots []eval.Root, files []*codegen.File) ([]*
 				is.Path = ReplaceGen(is.Path, true)
 			}
 			if isSvc {
-				hd["Pkg"] = "service"
+				hd["Pkg"] = "endpoint"
 			}
 		}
 	}
