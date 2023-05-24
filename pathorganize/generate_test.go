@@ -1,4 +1,4 @@
-package pathmodifier
+package pathorganize
 
 import (
 	"testing"

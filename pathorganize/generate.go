@@ -1,4 +1,7 @@
-package pathmodifier
+// pathorganize is change the file generation pathes
+// Opeanpi files placed into ../api/openapi directory
+// Cmd files placed into ../cmd/ xx directory and added goa- prefix for the dirs
+package pathorganize
 
 import (
 	"fmt"
