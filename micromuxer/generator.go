@@ -72,9 +72,7 @@ func GenerateMicroMuxerFile(genpkg string, svc services) *codegen.File {
 		{Path: "net/http"},
 		{Path: "go-micro.dev/v4/logger", Name: "mlog"},
 		{Path: "goa.design/goa/v3/middleware"},
-		{Path: "goa.design/goa/v3/http/middleware", Name: "httpmdlwr"},
 		{Path: "goa.design/goa/v3/http", Name: "goahttp"},
-		{Path: RepPath(filepath.Join(genpkg, codegen.Gendir, "log")), Name: "log"},
 	}...)
 
 	for _, v := range svc {
@@ -100,9 +98,7 @@ func GenerateMicroMuxerFile(genpkg string, svc services) *codegen.File {
 const muxerT = `
 // NewMicroMuxer initialize the services and returns http handler
 func NewMicroMuxer(l mlog.Logger, enabled map[string]bool) (http.Handler, goahttp.MiddlewareMuxer) {
-	logger := &log.Logger{l}
 	var (
-		adapter = logger
 		eh      = errorHandler(logger)
 		dec     = goahttp.RequestDecoder
 		enc     = goahttp.ResponseEncoder
@@ -112,7 +108,7 @@ func NewMicroMuxer(l mlog.Logger, enabled map[string]bool) (http.Handler, goahtt
 	{{- range .services }}
 	{
 		if b, ok := enabled[{{ .ServerAlias }}.ServiceName]; len(enabled) == 0 || ok && b {
-			{{ .ServerAlias }}Svc := {{ .NewServer }}(logger)
+			{{ .ServerAlias }}Svc := {{ .NewServer }}(l)
 			{{ .ServerAlias }}Endpoints := {{ .ServerAlias }}.NewEndpoints({{ .ServerAlias }}Svc)
 			{{ .ServerAlias }}Server := {{ .HttpServerAlias }}.New({{ .ServerAlias }}Endpoints, mux, dec, enc, eh, nil)
 			{{ .HttpServerAlias }}.Mount(mux, {{ .ServerAlias }}Server)
@@ -120,22 +116,17 @@ func NewMicroMuxer(l mlog.Logger, enabled map[string]bool) (http.Handler, goahtt
 	}
 	{{- end }}
 
-	var handler http.Handler = mux
-	{
-		handler = httpmdlwr.Log(adapter)(handler)
-		handler = httpmdlwr.RequestID()(handler)
-	}
-	return handler, mux
+	return http.Handler(mux), mux
 }
 
 // errorHandler returns a function that writes and logs the given error.
 // The function also writes and logs the error unique ID so that it's possible
 // to correlate.
-func errorHandler(logger *log.Logger) func(context.Context, http.ResponseWriter, error) {
+func errorHandler(logger mlog.Logger) func(context.Context, http.ResponseWriter, error) {
 	return func(ctx context.Context, w http.ResponseWriter, err error) {
 		id := ctx.Value(middleware.RequestIDKey).(string)
 		_, _ = w.Write([]byte("[" + id + "] encoding: " + err.Error()))
-		logger.Logf(log.ErrorLevel, "[%s] ERROR: %s", id, err.Error())
+		mlog.Logf(mlog.ErrorLevel, "[%s] ERROR: %s", id, err.Error())
 	}
 }
 `
