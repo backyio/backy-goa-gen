@@ -102,11 +102,20 @@ func updateExampleFile(genpkg string, root *expr.RootExpr, f *fileToModify) {
 			s.Source = strings.Replace(s.Source, "adapter = middleware.NewLogger(logger)", "adapter = logger", 1)
 			s.Source = strings.Replace(s.Source, "id := ctx.Value(middleware.RequestIDKey).(string)", "id := ctx.Value(httpmdlwr.RequestIDKey).(string)", 1)
 
-			s.Source = strings.Replace(s.Source, `logger.Printf("[%s] ERROR: %s", id, err.Error())`,
-				`logger.Logf( mlog.ErrorLevel, "[%s] ERROR: %s", id, err.Error())`, 1)
+			s.Source = strings.Replace(s.Source, `// errorHandler returns a function that writes and logs the given error.
+// The function also writes and logs the error unique ID so that it's possible
+// to correlate.
+func errorHandler(logger mlog.Logger) func(context.Context, http.ResponseWriter, error) {
+	return func(ctx context.Context, w http.ResponseWriter, err error) {
+		id := ctx.Value(httpmdlwr.RequestIDKey).(string)
+		_, _ = w.Write([]byte("[" + id + "] encoding: " + err.Error()))
+		logger.Logf(mlog.ErrorLevel, "[%s] ERROR: %s", id, err.Error())
+	}
+}`, ``, 1)
 			s.Source = strings.Replace(s.Source, "logger.Print(", "logger.Log(mlog.InfoLevel,", -1)
 			s.Source = strings.Replace(s.Source, "logger.Printf(", "logger.Log(mlog.InfoLevel,", -1)
 			s.Source = strings.Replace(s.Source, "logger.Println(", "logger.Log(mlog.InfoLevel,", -1)
+			s.Source = strings.Replace(s.Source, "eh := errorHandler(logger)", "eh := httpmdlwr.ErrorHandler(logger)", -1)
 		}
 	} else {
 		for _, s := range f.file.SectionTemplates {

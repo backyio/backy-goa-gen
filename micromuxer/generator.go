@@ -22,6 +22,18 @@ type (
 	services = []serviceData
 )
 
+var (
+	middlewarePath string
+)
+
+// getMiddlewarePath generate path for middleware from pkg name
+func getMiddlewarePath(genpkg string) string {
+	p := strings.Replace(genpkg, "\\", "/", -1)
+	p = strings.Replace(p, "endpoint/", "", -1)
+	p = filepath.Join(p, "middleware")
+	return strings.Replace(p, "\\", "/", -1)
+}
+
 // Register the plugin Generator functions.
 func init() {
 	codegen.RegisterPluginFirst("micro-muxer", "example", nil, Generate)
@@ -29,6 +41,7 @@ func init() {
 
 // Generate generates go-muxer specific file.
 func Generate(genpkg string, roots []eval.Root, files []*codegen.File) ([]*codegen.File, error) {
+	middlewarePath = getMiddlewarePath(genpkg)
 	var svcs services
 	for _, root := range roots {
 		if r, ok := root.(*expr.RootExpr); ok {
@@ -71,7 +84,7 @@ func GenerateMicroMuxerFile(genpkg string, svc services) *codegen.File {
 		{Path: "context"},
 		{Path: "net/http"},
 		{Path: "go-micro.dev/v4/logger", Name: "mlog"},
-		{Path: "goa.design/goa/v3/middleware"},
+		{Path: middlewarePath},
 		{Path: "goa.design/goa/v3/http", Name: "goahttp"},
 	}...)
 
@@ -99,7 +112,7 @@ const muxerT = `
 // NewMicroMuxer initialize the services and returns http handler
 func NewMicroMuxer(l mlog.Logger, enabled map[string]bool) (http.Handler, goahttp.MiddlewareMuxer) {
 	var (
-		eh      = errorHandler(l)
+		eh      = middleware.ErrorHandler(l)
 		dec     = goahttp.RequestDecoder
 		enc     = goahttp.ResponseEncoder
 		mux     = goahttp.NewMuxer()
@@ -117,16 +130,5 @@ func NewMicroMuxer(l mlog.Logger, enabled map[string]bool) (http.Handler, goahtt
 	{{- end }}
 
 	return http.Handler(mux), mux
-}
-
-// errorHandler returns a function that writes and logs the given error.
-// The function also writes and logs the error unique ID so that it's possible
-// to correlate.
-func errorHandler(logger mlog.Logger) func(context.Context, http.ResponseWriter, error) {
-	return func(ctx context.Context, w http.ResponseWriter, err error) {
-		id := ctx.Value(middleware.RequestIDKey).(string)
-		_, _ = w.Write([]byte("[" + id + "] encoding: " + err.Error()))
-		mlog.Logf(mlog.ErrorLevel, "[%s] ERROR: %s", id, err.Error())
-	}
 }
 `
