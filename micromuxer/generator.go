@@ -99,7 +99,7 @@ const muxerT = `
 // NewMicroMuxer initialize the services and returns http handler
 func NewMicroMuxer(l mlog.Logger, enabled map[string]bool) (http.Handler, goahttp.MiddlewareMuxer) {
 	var (
-		eh      = errorHandler(logger)
+		eh      = errorHandler(l)
 		dec     = goahttp.RequestDecoder
 		enc     = goahttp.ResponseEncoder
 		mux     = goahttp.NewMuxer()

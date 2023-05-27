@@ -21,10 +21,23 @@ func init() {
 	codegen.RegisterPluginLast("micro-log", "example", nil, UpdateExample)
 }
 
+var (
+	middlewarePath string
+)
+
+// getMiddlewarePath generate path for middleware from pkg name
+func getMiddlewarePath(genpkg string) string {
+	p := strings.Replace(genpkg, "\\", "/", -1)
+	p = strings.Replace(p, "endpoint/", "", -1)
+	p = filepath.Join(p, "middleware")
+	return strings.Replace(p, "\\", "/", -1)
+}
+
 // UpdateExample modifies the example generated files by replacing
 // the log import reference when needed
 // It also modify the initially generated main and service files
 func UpdateExample(genpkg string, roots []eval.Root, files []*codegen.File) ([]*codegen.File, error) {
+	middlewarePath = getMiddlewarePath(genpkg)
 
 	filesToModify := []*fileToModify{}
 
@@ -75,13 +88,20 @@ func updateExampleFile(genpkg string, root *expr.RootExpr, f *fileToModify) {
 			spec.Name = "mlog"
 			spec.Path = "go-micro.dev/v4/logger"
 		}
+		if spec.Name == "httpmdlwr" {
+			spec.Path = middlewarePath
+		}
 	}
 
 	if f.isMain {
-
 		for _, s := range f.file.SectionTemplates {
 			s.Source = strings.Replace(s.Source, `logger = log.New(os.Stderr, "[{{ .APIPkg }}] ", log.Ltime)`, "", 1)
-			s.Source = strings.Replace(s.Source, "adapter = middleware.NewLogger(logger)", "", 1)
+			s.Source = strings.Replace(s.Source, `logger *log.Logger,`, "logger mlog.Logger,", 1)
+			s.Source = strings.Replace(s.Source, `errorHandler(logger *log.Logger) func`, "errorHandler(logger mlog.Logger) func", 1)
+			s.Source = strings.Replace(s.Source, "adapter middleware.Logger", "adapter mlog.Logger", 1)
+			s.Source = strings.Replace(s.Source, "adapter = middleware.NewLogger(logger)", "adapter = logger", 1)
+			s.Source = strings.Replace(s.Source, "id := ctx.Value(middleware.RequestIDKey).(string)", "id := ctx.Value(httpmdlwr.RequestIDKey).(string)", 1)
+
 			s.Source = strings.Replace(s.Source, `logger.Printf("[%s] ERROR: %s", id, err.Error())`,
 				`logger.Logf( mlog.ErrorLevel, "[%s] ERROR: %s", id, err.Error())`, 1)
 			s.Source = strings.Replace(s.Source, "logger.Print(", "logger.Log(mlog.InfoLevel,", -1)
@@ -90,6 +110,7 @@ func updateExampleFile(genpkg string, root *expr.RootExpr, f *fileToModify) {
 		}
 	} else {
 		for _, s := range f.file.SectionTemplates {
+			s.Source = strings.Replace(s.Source, `logger *log.Logger`, "logger mlog.Logger", 1)
 			s.Source = strings.Replace(s.Source, "logger.Print(", "logger.Log(mlog.InfoLevel,", -1)
 			s.Source = strings.Replace(s.Source, "logger.Printf(", "logger.Log(mlog.InfoLevel", -1)
 			s.Source = strings.Replace(s.Source, "logger.Println(", "logger.Log(mlog.InfoLevel,", -1)
