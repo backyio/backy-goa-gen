@@ -109,6 +109,20 @@ func GenerateMicroMuxerFile(genpkg string, svc services) *codegen.File {
 }
 
 const muxerT = `
+
+type (
+	MicroHttpEndpoint interface {
+		Service() string
+		MethodNames() []string
+		Mount(goahttp.Muxer)
+		Use(func(http.Handler) http.Handler)
+	}
+
+	MicroHttpEndpoints map[string]MicroHttpEndpoint
+)
+
+var AvailableHttpEndpoints MicroHttpEndpoints = make(MicroHttpEndpoints)
+
 // NewMicroMuxer initialize the services and returns http handler
 func NewMicroMuxer(l mlog.Logger, enabled map[string]bool) (http.Handler, goahttp.MiddlewareMuxer) {
 	var (
@@ -125,6 +139,7 @@ func NewMicroMuxer(l mlog.Logger, enabled map[string]bool) (http.Handler, goahtt
 			{{ .ServerAlias }}Endpoints := {{ .ServerAlias }}.NewEndpoints({{ .ServerAlias }}Svc)
 			{{ .ServerAlias }}Server := {{ .HttpServerAlias }}.New({{ .ServerAlias }}Endpoints, mux, dec, enc, eh, nil)
 			{{ .HttpServerAlias }}.Mount(mux, {{ .ServerAlias }}Server)
+            AvailableHttpEndpoints[{{ .ServerAlias }}Server.Service()] = {{ .ServerAlias }}Server
 		}
 	}
 	{{- end }}
