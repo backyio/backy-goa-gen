@@ -28,10 +28,10 @@ var (
 
 // getMiddlewarePath generate path for middleware from pkg name
 func getMiddlewarePath(genpkg string) string {
-	p := strings.Replace(genpkg, "\\", "/", -1)
-	// p = strings.Replace(p, "endpoint/", "", -1)
-	p = filepath.Join(p, "middleware")
-	return strings.Replace(p, "\\", "/", -1)
+	p := filepath.Join(genpkg, "middleware")
+	p = strings.Replace(p, "\\", "/", -1)
+	p = strings.Replace(p, "/gen", "", -1)
+	return p
 }
 
 // Register the plugin Generator functions.

@@ -18,7 +18,7 @@ func init() {
 	codegen.RegisterPluginLast("pathmod-example", "example", nil, UpdateExample)
 }
 
-var needReplace = false
+var needReplace = true
 
 func ReplaceGen(s string) (res string) {
 	if needReplace {

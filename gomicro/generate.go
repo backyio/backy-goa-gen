@@ -1,6 +1,7 @@
 package logrus
 
 import (
+	"fmt"
 	"path/filepath"
 	"strings"
 
@@ -28,6 +29,8 @@ var (
 // getMiddlewarePath generate path for middleware from pkg name
 func getMiddlewarePath(genpkg string) string {
 	p := strings.Replace(genpkg, "\\", "/", -1)
+	p = strings.Replace(p, "/gen/gen", "", -1)
+	p = strings.Replace(p, "/gen", "", -1)
 	// p = strings.Replace(p, "endpoint/", "", -1)
 	p = filepath.Join(p, "middleware")
 	return strings.Replace(p, "\\", "/", -1)
@@ -38,7 +41,7 @@ func getMiddlewarePath(genpkg string) string {
 // It also modify the initially generated main and service files
 func UpdateExample(genpkg string, roots []eval.Root, files []*codegen.File) ([]*codegen.File, error) {
 	middlewarePath = getMiddlewarePath(genpkg)
-
+	fmt.Printf("%s %s", genpkg, middlewarePath)
 	filesToModify := []*fileToModify{}
 
 	for _, root := range roots {
