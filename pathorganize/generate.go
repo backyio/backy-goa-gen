@@ -18,9 +18,15 @@ func init() {
 	codegen.RegisterPluginLast("pathmod-example", "example", nil, UpdateExample)
 }
 
-func ReplaceGen(s string, imp bool) (res string) {
-	res = strings.Replace(s, "gen/", "", -1)
-	res = strings.Replace(res, "gen\\", "", -1)
+var needReplace = false
+
+func ReplaceGen(s string) (res string) {
+	if needReplace {
+		res = strings.Replace(s, "gen/", "", -1)
+		res = strings.Replace(res, "gen\\", "", -1)
+		return
+	}
+	res = s
 	return
 }
 
@@ -28,7 +34,7 @@ func ReplaceGen(s string, imp bool) (res string) {
 func Generate(genpkg string, roots []eval.Root, files []*codegen.File) ([]*codegen.File, error) {
 	for _, f := range files {
 
-		f.Path = ReplaceGen(f.Path, false)
+		f.Path = ReplaceGen(f.Path)
 
 		// rewrite openapi output path
 		if strings.Contains(f.Path, "http\\openapi") || strings.Contains(f.Path, "http/openapi") {
@@ -46,7 +52,7 @@ func Generate(genpkg string, roots []eval.Root, files []*codegen.File) ([]*codeg
 				continue
 			}
 			for _, is := range specs {
-				is.Path = ReplaceGen(is.Path, true)
+				is.Path = ReplaceGen(is.Path)
 			}
 		}
 	}
@@ -57,7 +63,7 @@ func Generate(genpkg string, roots []eval.Root, files []*codegen.File) ([]*codeg
 func UpdateExample(genpkg string, roots []eval.Root, files []*codegen.File) ([]*codegen.File, error) {
 	for _, f := range files {
 		// rewrite base path
-		f.Path = ReplaceGen(f.Path, false)
+		f.Path = ReplaceGen(f.Path)
 		if strings.Contains(f.Path, "cmd\\") || strings.Contains(f.Path, "cmd/") {
 			f.Path = strings.Replace(f.Path, "cmd\\", "..\\cmd\\goa-", -1)
 			f.Path = strings.Replace(f.Path, "cmd/", "../cmd/goa-", -1)
@@ -67,7 +73,7 @@ func UpdateExample(genpkg string, roots []eval.Root, files []*codegen.File) ([]*
 		isSvc := false
 		if strings.Contains(f.Path, "\\") == false && strings.Contains(f.Path, "/") == false {
 			fn := filepath.Base(f.Path)
-			f.Path = fmt.Sprintf("../server/endpoint/%s", fn)
+			f.Path = fmt.Sprintf("../endpoint/worker/%s", fn)
 			isSvc = true
 		}
 
@@ -81,10 +87,10 @@ func UpdateExample(genpkg string, roots []eval.Root, files []*codegen.File) ([]*
 				continue
 			}
 			for _, is := range specs {
-				is.Path = ReplaceGen(is.Path, true)
+				is.Path = ReplaceGen(is.Path)
 			}
 			if isSvc {
-				hd["Pkg"] = "endpoint"
+				hd["Pkg"] = "worker"
 			}
 		}
 	}
