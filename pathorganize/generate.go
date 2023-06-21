@@ -22,8 +22,10 @@ var needReplace = true
 
 func ReplaceGen(s string) (res string) {
 	if needReplace {
-		res = strings.Replace(s, "gen/gen/", "gen/", -1)
-		res = strings.Replace(res, "gen\\gen\\", "gen\\", -1)
+		res = strings.Replace(s, "\\", "gen/", -1)
+		res = strings.Replace(res, "gen/gen/", "", -1)
+		res = strings.Replace(res, "gen/", "", -1)
+		// res = strings.Replace(res, "gen\\gen\\", "gen\\", -1)
 		return
 	}
 	res = s
